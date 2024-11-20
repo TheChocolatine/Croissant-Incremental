@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croissant Incremental</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fff8e1;
+      color: #6d4c41;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #croissantDisplay {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+    button {
+      padding: 15px 20px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      background-color: #ffab40;
+      color: white;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #ff9100;
+    }
+    .upgrade {
+      display: block;
+      margin: 10px auto;
+      width: 250px;
+    }
+    .croissant-image {
+      width: 100px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Croissant Incremental</h1>
+  <p id="croissantDisplay">Croissants: 0</p>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Croissant_3d.png" 
+       alt="Croissant" 
+       class="croissant-image" 
+       id="croissantClicker">
+
+  <h2>Upgrades</h2>
+  <button class="upgrade" id="upgrade1">Hire Baker Assistant (Cost: 15)</button>
+  <button class="upgrade" id="upgrade2">Buy Croissant Factory (Cost: 100)</button>
+
+  <script>
+    // Game variables
+    let croissants = 0;
+    let croissantsPerClick = 1;
+    let bakers = 0;
+    let factories = 0;
+    let upgradeCosts = { upgrade1: 15, upgrade2: 100 };
+
+    // DOM elements
+    const croissantDisplay = document.getElementById('croissantDisplay');
+    const croissantClicker = document.getElementById('croissantClicker');
+    const upgrade1Button = document.getElementById('upgrade1');
+    const upgrade2Button = document.getElementById('upgrade2');
+
+    // Update croissant display
+    function updateCroissantDisplay() {
+      croissantDisplay.textContent = `Croissants: ${croissants}`;
+    }
+
+    // Handle clicking the croissant
+    croissantClicker.addEventListener('click', () => {
+      croissants += croissantsPerClick;
+      updateCroissantDisplay();
+    });
+
+    // Hire Baker Assistant (Upgrade 1)
+    upgrade1Button.addEventListener('click', () => {
+      if (croissants >= upgradeCosts.upgrade1) {
+        croissants -= upgradeCosts.upgrade1;
+        bakers++;
+        upgradeCosts.upgrade1 = Math.floor(upgradeCosts.upgrade1 * 1.5);
+        upgrade1Button.textContent = `Hire Baker Assistant (Cost: ${upgradeCosts.upgrade1})`;
+        setInterval(() => {
+          croissants += bakers;
+          updateCroissantDisplay();
+        }, 1000); // Bakers generate 1 croissant per second each
+        updateCroissantDisplay();
+      } else {
+        alert("You need more croissants!");
+      }
+    });
+
+    // Buy Croissant Factory (Upgrade 2)
+    upgrade2Button.addEventListener('click', () => {
+      if (croissants >= upgradeCosts.upgrade2) {
+        croissants -= upgradeCosts.upgrade2;
+        factories++;
+        upgradeCosts.upgrade2 = Math.floor(upgradeCosts.upgrade2 * 1.8);
+        upgrade2Button.textContent = `Buy Croissant Factory (Cost: ${upgradeCosts.upgrade2})`;
+        setInterval(() => {
+          croissants += factories * 5; // Factories generate 5 croissants per second each
+          updateCroissantDisplay();
+        }, 1000);
+        updateCroissantDisplay();
+      } else {
+        alert("You need more croissants!");
+      }
+    });
+
+    // Initialize display
+    updateCroissantDisplay();
+  </script>
+</body>
+</html>
