@@ -3,157 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enhanced Croissant Incremental</title>
+  <title>Ultimate Croissant Empire</title>
 </head>
 <body>
-  <h1>Croissant Incremental</h1>
+  <h1>Ultimate Croissant Empire</h1>
+  
+  <h2>Resources</h2>
   <p id="croissantDisplay">Croissants: 0</p>
+  <p id="butterDisplay">Butter: 0</p>
+  <p id="cpsDisplay">Croissants Per Second: 0</p>
+  <p id="bonusDisplay">Global Multiplier: 1.0x</p>
+  
   <button id="croissantClicker">Bake Croissant</button>
-  <p id="cpcDisplay">Croissants Per Click: 1</p>
 
   <h2>Upgrades</h2>
-  <button id="upgrade1">Hire Baker Assistant (Cost: 15)</button>
-  <button id="upgrade2">Buy Croissant Factory (Cost: 100)</button>
-  <button id="upgrade3">Golden Oven (Cost: 500)</button>
+  <div id="upgradeList">
+    <button id="upgrade1">Hire Baker Assistant (Cost: 15 croissants)</button>
+    <button id="upgrade2">Buy Croissant Factory (Cost: 100 croissants)</button>
+    <button id="upgrade3">Upgrade to Turbo Ovens (Cost: 500 croissants, 5 butter)</button>
+    <button id="upgrade4">Hire Master Baker (Cost: 1,000 croissants)</button>
+    <button id="upgrade5">Build Croissant Robots (Cost: 5,000 croissants, 20 butter)</button>
+    <button id="upgrade6">Construct Mega Factory (Cost: 25,000 croissants, 100 butter)</button>
+  </div>
 
-  <h2>Prestige</h2>
-  <p id="prestigeDisplay">Prestige Points: 0 (Bonus: 1.0x)</p>
-  <button id="prestigeButton" disabled>Prestige (Reset for +1 Prestige Point)</button>
+  <h2>Quests</h2>
+  <p id="questDisplay">No quests active.</p>
 
-  <h2>Events</h2>
-  <p id="eventDisplay">No events yet...</p>
+  <h2>Achievements</h2>
+  <p id="achievementList">No achievements unlocked yet.</p>
+
+  <h2>Random Events</h2>
+  <p id="eventDisplay">Waiting for events...</p>
 
   <script>
-    // Game variables
+    // Core variables
     let croissants = 0;
+    let butter = 0;
     let croissantsPerClick = 1;
-    let bakers = 0;
-    let factories = 0;
-    let ovens = 0;
-    let prestigePoints = 0;
-    let bonusMultiplier = 1.0;
-    let upgradeCosts = { upgrade1: 15, upgrade2: 100, upgrade3: 500 };
+    let croissantsPerSecond = 0;
+    let globalMultiplier = 1.0;
+
+    // Upgrade trackers
+    let upgrades = {
+      upgrade1: { cost: 15, owned: 0, cps: 1 },
+      upgrade2: { cost: 100, owned: 0, cps: 5 },
+      upgrade3: { cost: 500, butterCost: 5, owned: 0, multiplier: 1.5 },
+      upgrade4: { cost: 1000, owned: 0, cps: 20 },
+      upgrade5: { cost: 5000, butterCost: 20, owned: 0, cps: 100 },
+      upgrade6: { cost: 25000, butterCost: 100, owned: 0, cps: 500 },
+    };
+
+    // Quest system
+    const quests = [
+      { goal: 100, reward: 5, type: "croissants" },
+      { goal: 10, reward: 1, type: "butter" },
+    ];
+    let activeQuest = null;
+
+    // Achievements
+    const achievements = [
+      { name: "First Croissant", condition: () => croissants >= 1 },
+      { name: "Butter Hoarder", condition: () => butter >= 10 },
+      { name: "Mega Empire", condition: () => croissants >= 100000 },
+    ];
+    const unlockedAchievements = new Set();
 
     // DOM elements
-    const croissantDisplay = document.getElementById('croissantDisplay');
-    const cpcDisplay = document.getElementById('cpcDisplay');
-    const prestigeDisplay = document.getElementById('prestigeDisplay');
-    const prestigeButton = document.getElementById('prestigeButton');
-    const eventDisplay = document.getElementById('eventDisplay');
-    const croissantClicker = document.getElementById('croissantClicker');
-    const upgrade1Button = document.getElementById('upgrade1');
-    const upgrade2Button = document.getElementById('upgrade2');
-    const upgrade3Button = document.getElementById('upgrade3');
+    const croissantDisplay = document.getElementById("croissantDisplay");
+    const butterDisplay = document.getElementById("butterDisplay");
+    const cpsDisplay = document.getElementById("cpsDisplay");
+    const bonusDisplay = document.getElementById("bonusDisplay");
+    const eventDisplay = document.getElementById("eventDisplay");
+    const questDisplay = document.getElementById("questDisplay");
+    const achievementList = document.getElementById("achievementList");
 
-    // Update croissant display
-    function updateCroissantDisplay() {
+    // Update displays
+    function updateDisplay() {
       croissantDisplay.textContent = `Croissants: ${Math.floor(croissants)}`;
-      cpcDisplay.textContent = `Croissants Per Click: ${croissantsPerClick}`;
-      prestigeDisplay.textContent = `Prestige Points: ${prestigePoints} (Bonus: ${bonusMultiplier.toFixed(1)}x)`;
+      butterDisplay.textContent = `Butter: ${Math.floor(butter)}`;
+      cpsDisplay.textContent = `Croissants Per Second: ${Math.floor(croissantsPerSecond)}`;
+      bonusDisplay.textContent = `Global Multiplier: ${globalMultiplier.toFixed(1)}x`;
     }
 
-    // Check if prestige is available
-    function updatePrestigeButton() {
-      prestigeButton.disabled = croissants < 1000;
+    // Update achievements
+    function updateAchievements() {
+      achievements.forEach((ach) => {
+        if (ach.condition() && !unlockedAchievements.has(ach.name)) {
+          unlockedAchievements.add(ach.name);
+          const newAch = document.createElement("p");
+          newAch.textContent = `Unlocked Achievement: ${ach.name}`;
+          achievementList.appendChild(newAch);
+          globalMultiplier += 0.1; // Bonus for unlocking
+        }
+      });
     }
 
-    // Handle clicking the croissant
-    croissantClicker.addEventListener('click', () => {
-      croissants += croissantsPerClick * bonusMultiplier;
-      updateCroissantDisplay();
-      updatePrestigeButton();
-    });
-
-    // Hire Baker Assistant (Upgrade 1)
-    upgrade1Button.addEventListener('click', () => {
-      if (croissants >= upgradeCosts.upgrade1) {
-        croissants -= upgradeCosts.upgrade1;
-        bakers++;
-        upgradeCosts.upgrade1 = Math.floor(upgradeCosts.upgrade1 * 1.5);
-        upgrade1Button.textContent = `Hire Baker Assistant (Cost: ${upgradeCosts.upgrade1})`;
-        setInterval(() => {
-          croissants += bakers * bonusMultiplier;
-          updateCroissantDisplay();
-        }, 1000);
-        updateCroissantDisplay();
+    // Handle upgrades
+    function buyUpgrade(key) {
+      const upgrade = upgrades[key];
+      if (croissants >= upgrade.cost && (!upgrade.butterCost || butter >= upgrade.butterCost)) {
+        croissants -= upgrade.cost;
+        if (upgrade.butterCost) butter -= upgrade.butterCost;
+        upgrade.owned++;
+        croissantsPerSecond += (upgrade.cps || 0) * globalMultiplier;
+        if (upgrade.multiplier) globalMultiplier *= upgrade.multiplier;
+        upgrade.cost = Math.floor(upgrade.cost * 1.5);
+        updateDisplay();
       } else {
-        alert("Not enough croissants!");
+        alert("Not enough resources!");
       }
+    }
+
+    // Handle clicking
+    document.getElementById("croissantClicker").addEventListener("click", () => {
+      croissants += croissantsPerClick * globalMultiplier;
+      updateDisplay();
+      updateAchievements();
     });
 
-    // Buy Croissant Factory (Upgrade 2)
-    upgrade2Button.addEventListener('click', () => {
-      if (croissants >= upgradeCosts.upgrade2) {
-        croissants -= upgradeCosts.upgrade2;
-        factories++;
-        upgradeCosts.upgrade2 = Math.floor(upgradeCosts.upgrade2 * 1.8);
-        upgrade2Button.textContent = `Buy Croissant Factory (Cost: ${upgradeCosts.upgrade2})`;
-        setInterval(() => {
-          croissants += factories * 5 * bonusMultiplier;
-          updateCroissantDisplay();
-        }, 1000);
-        updateCroissantDisplay();
-      } else {
-        alert("Not enough croissants!");
-      }
-    });
-
-    // Buy Golden Oven (Upgrade 3)
-    upgrade3Button.addEventListener('click', () => {
-      if (croissants >= upgradeCosts.upgrade3) {
-        croissants -= upgradeCosts.upgrade3;
-        ovens++;
-        upgradeCosts.upgrade3 = Math.floor(upgradeCosts.upgrade3 * 2.0);
-        upgrade3Button.textContent = `Golden Oven (Cost: ${upgradeCosts.upgrade3})`;
-        setInterval(() => {
-          croissants += ovens * 20 * bonusMultiplier;
-          updateCroissantDisplay();
-        }, 1000);
-        updateCroissantDisplay();
-      } else {
-        alert("Not enough croissants!");
-      }
-    });
-
-    // Prestige mechanic
-    prestigeButton.addEventListener('click', () => {
-      if (croissants >= 1000) {
-        prestigePoints++;
-        bonusMultiplier += 0.2;
-        croissants = 0;
-        bakers = 0;
-        factories = 0;
-        ovens = 0;
-        upgradeCosts = { upgrade1: 15, upgrade2: 100, upgrade3: 500 };
-        upgrade1Button.textContent = `Hire Baker Assistant (Cost: ${upgradeCosts.upgrade1})`;
-        upgrade2Button.textContent = `Buy Croissant Factory (Cost: ${upgradeCosts.upgrade2})`;
-        upgrade3Button.textContent = `Golden Oven (Cost: ${upgradeCosts.upgrade3})`;
-        updateCroissantDisplay();
-        updatePrestigeButton();
-      }
+    // Upgrade buttons
+    Object.keys(upgrades).forEach((key) => {
+      document.getElementById(key).addEventListener("click", () => buyUpgrade(key));
     });
 
     // Random events
     setInterval(() => {
-      const eventChance = Math.random();
-      if (eventChance < 0.1) {
-        const eventType = Math.random() < 0.5 ? "bonus" : "loss";
-        if (eventType === "bonus") {
-          const bonus = Math.floor(Math.random() * 100) + 50;
-          croissants += bonus;
-          eventDisplay.textContent = `A kind customer gave you ${bonus} croissants!`;
-        } else {
-          const loss = Math.floor(Math.random() * 50) + 25;
-          croissants = Math.max(0, croissants - loss);
-          eventDisplay.textContent = `A rat stole ${loss} croissants!`;
-        }
-        updateCroissantDisplay();
+      const chance = Math.random();
+      if (chance < 0.2) {
+        const bonus = Math.floor(Math.random() * 50) + 10;
+        croissants += bonus;
+        eventDisplay.textContent = `A customer gave you ${bonus} croissants!`;
+      } else if (chance > 0.8) {
+        const loss = Math.floor(Math.random() * 30) + 5;
+        croissants = Math.max(0, croissants - loss);
+        eventDisplay.textContent = `Rats ate ${loss} croissants!`;
       }
-    }, 15000);
+      updateDisplay();
+    }, 30000);
+
+    // Passive income loop
+    setInterval(() => {
+      croissants += croissantsPerSecond * globalMultiplier / 10;
+      updateDisplay();
+      updateAchievements();
+    }, 100);
 
     // Initialize display
-    updateCroissantDisplay();
-    updatePrestigeButton();
+    updateDisplay();
   </script>
 </body>
 </html>
