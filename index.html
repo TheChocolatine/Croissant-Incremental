@@ -15,7 +15,7 @@
     .section {
       margin-bottom: 20px;
     }
-    .resources, .upgrades, .achievements, .events, .actions {
+    .resources, .upgrades, .achievements, .events, .actions, .prestige {
       border: 1px solid #ccc;
       padding: 10px;
       border-radius: 5px;
@@ -31,10 +31,26 @@
     button:hover {
       background-color: #ddd;
     }
+    .dark-mode {
+      background-color: #121212;
+      color: #ffffff;
+    }
+    .dark-mode button {
+      background-color: #333333;
+      color: #ffffff;
+    }
+    .dark-mode button:hover {
+      background-color: #444444;
+    }
   </style>
 </head>
 <body>
   <h1>Ultimate Croissant Empire</h1>
+
+  <!-- Dark Mode -->
+  <div class="section">
+    <button id="toggleDarkMode">Toggle Dark Mode</button>
+  </div>
 
   <!-- Resource Section -->
   <div class="section resources">
@@ -43,14 +59,25 @@
     <p><b>Butter:</b> <span id="butterDisplay">0</span></p>
     <p><b>Croissants Per Second (CPS):</b> <span id="cpsDisplay">0</span></p>
     <p><b>Global Multiplier:</b> <span id="bonusDisplay">1.0x</span></p>
+    <p><b>Golden Croissants (Prestige):</b> <span id="goldenDisplay">0</span></p>
   </div>
 
   <!-- Actions Section -->
   <div class="section actions">
     <h2>Actions</h2>
     <button id="croissantClicker">Bake Croissant</button>
+    <button id="activateDoubleCPS">Double CPS (30s)</button>
     <button id="saveGame">Save Game</button>
     <button id="resetGame">Reset Game</button>
+    <button id="prestigeButton">Prestige (Reset for Golden Croissants)</button>
+  </div>
+
+  <!-- Stock Market Section -->
+  <div class="section upgrades">
+    <h2>Stock Market</h2>
+    <p><b>Market Price:</b> <span id="marketPriceDisplay">1</span> croissants per unit</p>
+    <button id="sellCroissants">Sell Croissants</button>
+    <button id="buyCroissants">Buy Croissants</button>
   </div>
 
   <!-- Upgrades Section -->
@@ -80,9 +107,14 @@
     // Core variables
     let croissants = 0;
     let butter = 0;
+    let goldenCroissants = 0;
     let croissantsPerClick = 1;
     let croissantsPerSecond = 0;
     let globalMultiplier = 1.0;
+    let marketPrice = 1;
+
+    // Dark mode state
+    let darkMode = false;
 
     // Upgrade trackers
     const upgrades = {
@@ -99,8 +131,9 @@
     const butterDisplay = document.getElementById("butterDisplay");
     const cpsDisplay = document.getElementById("cpsDisplay");
     const bonusDisplay = document.getElementById("bonusDisplay");
+    const goldenDisplay = document.getElementById("goldenDisplay");
+    const marketPriceDisplay = document.getElementById("marketPriceDisplay");
     const eventDisplay = document.getElementById("eventDisplay");
-    const achievementList = document.getElementById("achievementList");
 
     // Utility functions
     function updateDisplay() {
@@ -108,39 +141,18 @@
       butterDisplay.textContent = Math.floor(butter);
       cpsDisplay.textContent = croissantsPerSecond.toFixed(1);
       bonusDisplay.textContent = `${globalMultiplier.toFixed(1)}x`;
+      goldenDisplay.textContent = goldenCroissants;
+      marketPriceDisplay.textContent = marketPrice.toFixed(2);
     }
 
-    function saveGame() {
-      const saveData = {
-        croissants,
-        butter,
-        croissantsPerClick,
-        croissantsPerSecond,
-        globalMultiplier,
-        upgrades,
-      };
-      localStorage.setItem("croissantEmpireSave", JSON.stringify(saveData));
-      alert("Game saved!");
+    function toggleDarkMode() {
+      darkMode = !darkMode;
+      document.body.classList.toggle("dark-mode", darkMode);
     }
 
-    function loadGame() {
-      const saveData = JSON.parse(localStorage.getItem("croissantEmpireSave"));
-      if (saveData) {
-        croissants = saveData.croissants;
-        butter = saveData.butter;
-        croissantsPerClick = saveData.croissantsPerClick;
-        croissantsPerSecond = saveData.croissantsPerSecond;
-        globalMultiplier = saveData.globalMultiplier;
-        Object.assign(upgrades, saveData.upgrades);
-        alert("Game loaded!");
-      }
-    }
-
-    function resetGame() {
-      if (confirm("Are you sure you want to reset your progress?")) {
-        localStorage.removeItem("croissantEmpireSave");
-        location.reload();
-      }
+    function randomizeMarketPrice() {
+      marketPrice = 0.5 + Math.random() * 2.5; // Random price between 0.5 and 3
+      updateDisplay();
     }
 
     // Event listeners
@@ -149,20 +161,10 @@
       updateDisplay();
     });
 
-    document.getElementById("saveGame").addEventListener("click", saveGame);
-    document.getElementById("resetGame").addEventListener("click", resetGame);
+    document.getElementById("toggleDarkMode").addEventListener("click", toggleDarkMode);
+    setInterval(randomizeMarketPrice, 15000); // Update stock market every 15s
 
-    // Auto-save every 10 seconds
-    setInterval(saveGame, 10000);
-
-    // Passive croissant generation
-    setInterval(() => {
-      croissants += (croissantsPerSecond * globalMultiplier) / 10;
-      updateDisplay();
-    }, 100);
-
-    // Load game on start
-    loadGame();
+    // Initialize display
     updateDisplay();
   </script>
 </body>
