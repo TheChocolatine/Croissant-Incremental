@@ -4,20 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ultimate Croissant Empire</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .resources, .upgrades, .achievements, .events, .actions {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    button {
+      margin: 5px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f4f4f4;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+  </style>
 </head>
 <body>
   <h1>Ultimate Croissant Empire</h1>
-  
-  <h2>Resources</h2>
-  <p id="croissantDisplay">Croissants: 0</p>
-  <p id="butterDisplay">Butter: 0</p>
-  <p id="cpsDisplay">Croissants Per Second: 0</p>
-  <p id="bonusDisplay">Global Multiplier: 1.0x</p>
-  
-  <button id="croissantClicker">Bake Croissant</button>
 
-  <h2>Upgrades</h2>
-  <div id="upgradeList">
+  <!-- Resource Section -->
+  <div class="section resources">
+    <h2>Resources</h2>
+    <p><b>Croissants:</b> <span id="croissantDisplay">0</span></p>
+    <p><b>Butter:</b> <span id="butterDisplay">0</span></p>
+    <p><b>Croissants Per Second (CPS):</b> <span id="cpsDisplay">0</span></p>
+    <p><b>Global Multiplier:</b> <span id="bonusDisplay">1.0x</span></p>
+  </div>
+
+  <!-- Actions Section -->
+  <div class="section actions">
+    <h2>Actions</h2>
+    <button id="croissantClicker">Bake Croissant</button>
+    <button id="saveGame">Save Game</button>
+    <button id="resetGame">Reset Game</button>
+  </div>
+
+  <!-- Upgrades Section -->
+  <div class="section upgrades">
+    <h2>Upgrades</h2>
     <button id="upgrade1">Hire Baker Assistant (Cost: 15 croissants)</button>
     <button id="upgrade2">Buy Croissant Factory (Cost: 100 croissants)</button>
     <button id="upgrade3">Upgrade to Turbo Ovens (Cost: 500 croissants, 5 butter)</button>
@@ -26,14 +64,17 @@
     <button id="upgrade6">Construct Mega Factory (Cost: 25,000 croissants, 100 butter)</button>
   </div>
 
-  <h2>Quests</h2>
-  <p id="questDisplay">No quests active.</p>
+  <!-- Achievements Section -->
+  <div class="section achievements">
+    <h2>Achievements</h2>
+    <p id="achievementList">No achievements unlocked yet.</p>
+  </div>
 
-  <h2>Achievements</h2>
-  <p id="achievementList">No achievements unlocked yet.</p>
-
-  <h2>Random Events</h2>
-  <p id="eventDisplay">Waiting for events...</p>
+  <!-- Events Section -->
+  <div class="section events">
+    <h2>Random Events</h2>
+    <p id="eventDisplay">Waiting for events...</p>
+  </div>
 
   <script>
     // Core variables
@@ -44,7 +85,7 @@
     let globalMultiplier = 1.0;
 
     // Upgrade trackers
-    let upgrades = {
+    const upgrades = {
       upgrade1: { cost: 15, owned: 0, cps: 1 },
       upgrade2: { cost: 100, owned: 0, cps: 5 },
       upgrade3: { cost: 500, butterCost: 5, owned: 0, multiplier: 1.5 },
@@ -53,102 +94,75 @@
       upgrade6: { cost: 25000, butterCost: 100, owned: 0, cps: 500 },
     };
 
-    // Quest system
-    const quests = [
-      { goal: 100, reward: 5, type: "croissants" },
-      { goal: 10, reward: 1, type: "butter" },
-    ];
-    let activeQuest = null;
-
-    // Achievements
-    const achievements = [
-      { name: "First Croissant", condition: () => croissants >= 1 },
-      { name: "Butter Hoarder", condition: () => butter >= 10 },
-      { name: "Mega Empire", condition: () => croissants >= 100000 },
-    ];
-    const unlockedAchievements = new Set();
-
     // DOM elements
     const croissantDisplay = document.getElementById("croissantDisplay");
     const butterDisplay = document.getElementById("butterDisplay");
     const cpsDisplay = document.getElementById("cpsDisplay");
     const bonusDisplay = document.getElementById("bonusDisplay");
     const eventDisplay = document.getElementById("eventDisplay");
-    const questDisplay = document.getElementById("questDisplay");
     const achievementList = document.getElementById("achievementList");
 
-    // Update displays
+    // Utility functions
     function updateDisplay() {
-      croissantDisplay.textContent = `Croissants: ${Math.floor(croissants)}`;
-      butterDisplay.textContent = `Butter: ${Math.floor(butter)}`;
-      cpsDisplay.textContent = `Croissants Per Second: ${Math.floor(croissantsPerSecond)}`;
-      bonusDisplay.textContent = `Global Multiplier: ${globalMultiplier.toFixed(1)}x`;
+      croissantDisplay.textContent = Math.floor(croissants);
+      butterDisplay.textContent = Math.floor(butter);
+      cpsDisplay.textContent = croissantsPerSecond.toFixed(1);
+      bonusDisplay.textContent = `${globalMultiplier.toFixed(1)}x`;
     }
 
-    // Update achievements
-    function updateAchievements() {
-      achievements.forEach((ach) => {
-        if (ach.condition() && !unlockedAchievements.has(ach.name)) {
-          unlockedAchievements.add(ach.name);
-          const newAch = document.createElement("p");
-          newAch.textContent = `Unlocked Achievement: ${ach.name}`;
-          achievementList.appendChild(newAch);
-          globalMultiplier += 0.1; // Bonus for unlocking
-        }
-      });
+    function saveGame() {
+      const saveData = {
+        croissants,
+        butter,
+        croissantsPerClick,
+        croissantsPerSecond,
+        globalMultiplier,
+        upgrades,
+      };
+      localStorage.setItem("croissantEmpireSave", JSON.stringify(saveData));
+      alert("Game saved!");
     }
 
-    // Handle upgrades
-    function buyUpgrade(key) {
-      const upgrade = upgrades[key];
-      if (croissants >= upgrade.cost && (!upgrade.butterCost || butter >= upgrade.butterCost)) {
-        croissants -= upgrade.cost;
-        if (upgrade.butterCost) butter -= upgrade.butterCost;
-        upgrade.owned++;
-        croissantsPerSecond += (upgrade.cps || 0) * globalMultiplier;
-        if (upgrade.multiplier) globalMultiplier *= upgrade.multiplier;
-        upgrade.cost = Math.floor(upgrade.cost * 1.5);
-        updateDisplay();
-      } else {
-        alert("Not enough resources!");
+    function loadGame() {
+      const saveData = JSON.parse(localStorage.getItem("croissantEmpireSave"));
+      if (saveData) {
+        croissants = saveData.croissants;
+        butter = saveData.butter;
+        croissantsPerClick = saveData.croissantsPerClick;
+        croissantsPerSecond = saveData.croissantsPerSecond;
+        globalMultiplier = saveData.globalMultiplier;
+        Object.assign(upgrades, saveData.upgrades);
+        alert("Game loaded!");
       }
     }
 
-    // Handle clicking
+    function resetGame() {
+      if (confirm("Are you sure you want to reset your progress?")) {
+        localStorage.removeItem("croissantEmpireSave");
+        location.reload();
+      }
+    }
+
+    // Event listeners
     document.getElementById("croissantClicker").addEventListener("click", () => {
       croissants += croissantsPerClick * globalMultiplier;
       updateDisplay();
-      updateAchievements();
     });
 
-    // Upgrade buttons
-    Object.keys(upgrades).forEach((key) => {
-      document.getElementById(key).addEventListener("click", () => buyUpgrade(key));
-    });
+    document.getElementById("saveGame").addEventListener("click", saveGame);
+    document.getElementById("resetGame").addEventListener("click", resetGame);
 
-    // Random events
-    setInterval(() => {
-      const chance = Math.random();
-      if (chance < 0.2) {
-        const bonus = Math.floor(Math.random() * 50) + 10;
-        croissants += bonus;
-        eventDisplay.textContent = `A customer gave you ${bonus} croissants!`;
-      } else if (chance > 0.8) {
-        const loss = Math.floor(Math.random() * 30) + 5;
-        croissants = Math.max(0, croissants - loss);
-        eventDisplay.textContent = `Rats ate ${loss} croissants!`;
-      }
-      updateDisplay();
-    }, 30000);
+    // Auto-save every 10 seconds
+    setInterval(saveGame, 10000);
 
-    // Passive income loop
+    // Passive croissant generation
     setInterval(() => {
-      croissants += croissantsPerSecond * globalMultiplier / 10;
+      croissants += (croissantsPerSecond * globalMultiplier) / 10;
       updateDisplay();
-      updateAchievements();
     }, 100);
 
-    // Initialize display
+    // Load game on start
+    loadGame();
     updateDisplay();
   </script>
 </body>
