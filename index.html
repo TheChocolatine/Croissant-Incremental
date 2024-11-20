@@ -3,16 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Croissant Incremental</title>
+  <title>Enhanced Croissant Incremental</title>
 </head>
 <body>
   <h1>Croissant Incremental</h1>
   <p id="croissantDisplay">Croissants: 0</p>
-  <button id="croissantClicker">Click to Collect Croissant</button>
+  <button id="croissantClicker">Bake Croissant</button>
+  <p id="cpcDisplay">Croissants Per Click: 1</p>
 
   <h2>Upgrades</h2>
   <button id="upgrade1">Hire Baker Assistant (Cost: 15)</button>
   <button id="upgrade2">Buy Croissant Factory (Cost: 100)</button>
+  <button id="upgrade3">Golden Oven (Cost: 500)</button>
+
+  <h2>Prestige</h2>
+  <p id="prestigeDisplay">Prestige Points: 0 (Bonus: 1.0x)</p>
+  <button id="prestigeButton" disabled>Prestige (Reset for +1 Prestige Point)</button>
+
+  <h2>Events</h2>
+  <p id="eventDisplay">No events yet...</p>
 
   <script>
     // Game variables
@@ -20,23 +29,39 @@
     let croissantsPerClick = 1;
     let bakers = 0;
     let factories = 0;
-    let upgradeCosts = { upgrade1: 15, upgrade2: 100 };
+    let ovens = 0;
+    let prestigePoints = 0;
+    let bonusMultiplier = 1.0;
+    let upgradeCosts = { upgrade1: 15, upgrade2: 100, upgrade3: 500 };
 
     // DOM elements
     const croissantDisplay = document.getElementById('croissantDisplay');
+    const cpcDisplay = document.getElementById('cpcDisplay');
+    const prestigeDisplay = document.getElementById('prestigeDisplay');
+    const prestigeButton = document.getElementById('prestigeButton');
+    const eventDisplay = document.getElementById('eventDisplay');
     const croissantClicker = document.getElementById('croissantClicker');
     const upgrade1Button = document.getElementById('upgrade1');
     const upgrade2Button = document.getElementById('upgrade2');
+    const upgrade3Button = document.getElementById('upgrade3');
 
     // Update croissant display
     function updateCroissantDisplay() {
-      croissantDisplay.textContent = `Croissants: ${croissants}`;
+      croissantDisplay.textContent = `Croissants: ${Math.floor(croissants)}`;
+      cpcDisplay.textContent = `Croissants Per Click: ${croissantsPerClick}`;
+      prestigeDisplay.textContent = `Prestige Points: ${prestigePoints} (Bonus: ${bonusMultiplier.toFixed(1)}x)`;
+    }
+
+    // Check if prestige is available
+    function updatePrestigeButton() {
+      prestigeButton.disabled = croissants < 1000;
     }
 
     // Handle clicking the croissant
     croissantClicker.addEventListener('click', () => {
-      croissants += croissantsPerClick;
+      croissants += croissantsPerClick * bonusMultiplier;
       updateCroissantDisplay();
+      updatePrestigeButton();
     });
 
     // Hire Baker Assistant (Upgrade 1)
@@ -47,12 +72,12 @@
         upgradeCosts.upgrade1 = Math.floor(upgradeCosts.upgrade1 * 1.5);
         upgrade1Button.textContent = `Hire Baker Assistant (Cost: ${upgradeCosts.upgrade1})`;
         setInterval(() => {
-          croissants += bakers;
+          croissants += bakers * bonusMultiplier;
           updateCroissantDisplay();
-        }, 1000); // Bakers generate 1 croissant per second each
+        }, 1000);
         updateCroissantDisplay();
       } else {
-        alert("You need more croissants!");
+        alert("Not enough croissants!");
       }
     });
 
@@ -64,17 +89,71 @@
         upgradeCosts.upgrade2 = Math.floor(upgradeCosts.upgrade2 * 1.8);
         upgrade2Button.textContent = `Buy Croissant Factory (Cost: ${upgradeCosts.upgrade2})`;
         setInterval(() => {
-          croissants += factories * 5; // Factories generate 5 croissants per second each
+          croissants += factories * 5 * bonusMultiplier;
           updateCroissantDisplay();
         }, 1000);
         updateCroissantDisplay();
       } else {
-        alert("You need more croissants!");
+        alert("Not enough croissants!");
       }
     });
 
+    // Buy Golden Oven (Upgrade 3)
+    upgrade3Button.addEventListener('click', () => {
+      if (croissants >= upgradeCosts.upgrade3) {
+        croissants -= upgradeCosts.upgrade3;
+        ovens++;
+        upgradeCosts.upgrade3 = Math.floor(upgradeCosts.upgrade3 * 2.0);
+        upgrade3Button.textContent = `Golden Oven (Cost: ${upgradeCosts.upgrade3})`;
+        setInterval(() => {
+          croissants += ovens * 20 * bonusMultiplier;
+          updateCroissantDisplay();
+        }, 1000);
+        updateCroissantDisplay();
+      } else {
+        alert("Not enough croissants!");
+      }
+    });
+
+    // Prestige mechanic
+    prestigeButton.addEventListener('click', () => {
+      if (croissants >= 1000) {
+        prestigePoints++;
+        bonusMultiplier += 0.2;
+        croissants = 0;
+        bakers = 0;
+        factories = 0;
+        ovens = 0;
+        upgradeCosts = { upgrade1: 15, upgrade2: 100, upgrade3: 500 };
+        upgrade1Button.textContent = `Hire Baker Assistant (Cost: ${upgradeCosts.upgrade1})`;
+        upgrade2Button.textContent = `Buy Croissant Factory (Cost: ${upgradeCosts.upgrade2})`;
+        upgrade3Button.textContent = `Golden Oven (Cost: ${upgradeCosts.upgrade3})`;
+        updateCroissantDisplay();
+        updatePrestigeButton();
+      }
+    });
+
+    // Random events
+    setInterval(() => {
+      const eventChance = Math.random();
+      if (eventChance < 0.1) {
+        const eventType = Math.random() < 0.5 ? "bonus" : "loss";
+        if (eventType === "bonus") {
+          const bonus = Math.floor(Math.random() * 100) + 50;
+          croissants += bonus;
+          eventDisplay.textContent = `A kind customer gave you ${bonus} croissants!`;
+        } else {
+          const loss = Math.floor(Math.random() * 50) + 25;
+          croissants = Math.max(0, croissants - loss);
+          eventDisplay.textContent = `A rat stole ${loss} croissants!`;
+        }
+        updateCroissantDisplay();
+      }
+    }, 15000);
+
     // Initialize display
     updateCroissantDisplay();
+    updatePrestigeButton();
   </script>
 </body>
 </html>
